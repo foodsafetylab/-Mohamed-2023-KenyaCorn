@@ -1,0 +1,89 @@
+---
+title: "Sorting rejection rates and masses correlationfor fumonisins"
+author: "Asha"
+date: "2023-06-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("C:/Users/Asha Mohamed/Desktop/R -files tutorials")
+read.csv("sortedmassandtoxinsv1.csv")
+```
+```{r}
+library(ppcor)
+```
+```{r}
+A1<- read.csv("sortedmassandtoxinsv1.csv")
+```
+
+```{r}
+install.packages("MASS")
+```
+```{r}
+library(MASS)
+```
+# correlation between %fumonisin removed and % mass rejected
+```{r}
+A2 <-data.frame(x=A1$rejection.percentage,y=A1$Toxin.removed)
+```
+
+```{r}
+cor(A2)
+cor.test(A2$x,A2$y)
+```
+
+```{r}
+fit<-lm(A2$y ~ A2$x)
+plot(A2$x,A2$y,xlab= "Fumonisin removed (%)",ylab = "Mass rejected (%)")
+abline(fit, col="blue", lwd=2)
+legend("topright", c("P=0.4","R= 0.2"),cex = 1)
+```
+#correlation between mass rejected and bulk fumonisin levels
+```{r}
+A3 <-data.frame(x=A1$rejection.percentage,y=A1$Fumonisin.in.bulk..ppm.)
+```
+
+```{r}
+cor(A3)
+cor.test(A3$x,A3$y)
+```
+```{r}
+fit<-lm(A3$y ~ A3$x)
+plot(A3$x,A3$y,xlab= "Fumonisin level in Bulk sample (ppm)",ylab = "Mass rejected (%)")
+abline(fit, col="blue", lwd=2)
+legend("topright", c("P=0.005","R= 0.6"),cex = 1)
+```
+# correlation between % fumonisin removed and bulk fumomnisin level
+```{r}
+A4 <- data.frame(x=A1$Fumonisin.in.bulk..ppm.,y=A1$Toxin.removed)
+```
+
+```{r}
+cor(A4)
+cor.test(A4$x,A4$y)
+```
+```{r}
+fit<-lm(A4$y ~ A4$x)
+plot(A4$x,A4$y,xlab= "Fumonisin level in Bulk samples (ppm)",ylab = "Fumonisin removed (%)")
+abline(fit, col="blue", lwd=2)
+legend("topright", c("P=0.6","R= 0.1"),cex = 1)
+```
+```{r}
+A5 <-data.frame(y=A1$Difference, X=A1$Fumonisin.in.bulk..ppm.)
+```
+
+```{r}
+cor(A5)
+cor.test(A5$y,A5$X)
+```
+```{r}
+fit<-lm(A5$y ~ A5$X)
+plot(A5$X,A5$y,xlab= "Fumonisin level in bulk samples (ppm)",ylab = "Differencein fumonisin in accept-reject (ppm)")
+abline(fit, col="blue", lwd=2)
+legend("topright", c("P=0.2","R=-0.3"),cex = 1)
+```
+

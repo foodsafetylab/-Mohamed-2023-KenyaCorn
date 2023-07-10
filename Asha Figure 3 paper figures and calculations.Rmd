@@ -1,0 +1,233 @@
+---
+title: "Asha's Sorting Paper"
+author: "Ruben"
+date: "2023-07-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(reshape2)
+```
+
+
+
+#Read Files
+```{r}
+
+#set here working sirectory, inserts yours
+
+setwd("C:/Users/ruben/Desktop/Asha's sorting paper")
+
+
+#read csv file and create data sheet in R
+
+Fumo_Kenya <- read.csv("Asha sorting paper Raw data by Ruben.csv", header = TRUE)
+
+#see data
+
+Fumo_Kenya
+
+
+```
+#Caluclations
+
+```{r}
+
+#Add columns based on calculations
+
+###set as data frame
+Fumo_Kenya_v2 <- data.frame(Fumo_Kenya)
+###adding new columns to calculate variables
+Fumo_Kenya_v2$Mass_reject_percentage <- Fumo_Kenya_v2[,7] * 100 / (Fumo_Kenya_v2[,6] + Fumo_Kenya_v2[,7])
+
+Fumo_Kenya_v2$Fum_mass_accept <- Fumo_Kenya_v2[,4] * Fumo_Kenya_v2[,6]
+
+Fumo_Kenya_v2$Fum_mass_reject <- Fumo_Kenya_v2[,5] * Fumo_Kenya_v2[,7]
+
+Fumo_Kenya_v2$Fum_mass_removed_percentage <- Fumo_Kenya_v2[,10] * 100 / (Fumo_Kenya_v2[,9] + Fumo_Kenya_v2[,10])
+
+Fumo_Kenya_v2$Difference_accept_reject <- Fumo_Kenya_v2[,4] - Fumo_Kenya_v2[,5]
+
+#Fumo_Kenya_v2 <- use columns to do calculations
+
+# adding log transformation
+
+Fumo_Kenya_v2$Log_bulk <- log10(Fumo_Kenya_v2[,3]) + 3  
+
+Fumo_Kenya_v2$Log_accept <- log10(Fumo_Kenya_v2[,4]) + 3  
+
+Fumo_Kenya_v2$Log_reject <- log10(Fumo_Kenya_v2[,5]) + 3  
+
+Fumo_Kenya_v2$Dif_log_accept_reject <- Fumo_Kenya_v2[,14] - Fumo_Kenya_v2[,15] 
+
+#Confirm Data set
+
+Fumo_Kenya_v2
+                           
+```
+
+```{r}
+#function to create linear correlations and graphs for paper (please do not edit)
+
+Plot_creation<-function(col1s, col2s, title, xtitle, ytitle, xposition, yposition,xmax, ymax, xmin, ymin){
+  
+  col1mod <- Fumo_Kenya_v2[[col1s]]
+  col2mod<-Fumo_Kenya_v2[[col2s]]
+  
+  LM_reject_bulk <- lm(formula = col2mod~col1mod)
+  
+  summary(LM_reject_bulk)
+  
+  summary(LM_reject_bulk)$coefficients[,4]
+  
+  LM_reject_bulk$coefficients[[1]]
+  
+  lmp <- function (modelobject) {
+      if (class(modelobject) != "lm") stop("Not an object of class 'lm' ")
+      f <- summary(modelobject)$fstatistic
+      p <- pf(f[1],f[2],f[3],lower.tail=F)
+      attributes(p) <- NULL
+      return(p)
+  }
+  
+  lmp(LM_reject_bulk)
+  
+  
+  Ghana_linear_reject_bulk <- ggplot(data = Fumo_Kenya_v2, aes_string(x=col1s, y=col2s)) + 
+  geom_point() +
+  geom_smooth(method=lm) + 
+  scale_x_continuous(xtitle) + 
+  scale_y_continuous(ytitle)+ 
+  coord_cartesian(ylim = c(ymin, ymax), xlim = c(xmin, xmax)) + 
+  ggtitle(title) + 
+  geom_label(aes(x = xposition, y = yposition), hjust = 0, 
+               label = paste(
+                                                 "Intercept =",signif(LM_reject_bulk$coefficients[[1]],3 ),
+                                                 " \nSlope =",signif(LM_reject_bulk$coefficients[[2]], 3),
+                                                 " \nP =",signif(lmp(LM_reject_bulk), 3)))
+  
+  plot(Ghana_linear_reject_bulk)
+  return(Ghana_linear_reject_bulk)
+    
+}
+
+
+```
+
+## NOTE: col1s in function is X axis and cols2s is Y axis
+
+# Create Plots (corrected)
+```{r}
+
+# use titles of Fumo_Kenya_v2 to select columns and create graphs
+
+##Accept vs Bulk Graph
+KenyaFM_accept_bulk  <- Plot_creation(col1s ="Log_bulk" , 
+               col2s = "Log_accept",
+              title = "Accept vs Bulk", 
+              xtitle = "Bulk Fumonisin Level Log (ng/g)",
+              ytitle = "Accept Fumonisin Log (ng/g)",
+              xposition = 4,
+              yposition = 6.5,
+              xmax = 5,
+              ymax = 7.5,
+              xmin = 3,
+              ymin = 0
+              ) + geom_abline(intercept = 0, slope = 1, lty=2)
+
+plot(KenyaFM_accept_bulk)
+
+
+
+```
+```{r}
+#Fumo_Kenya_v2
+
+##Reject vs Bulk Graph
+KenyaFM_reject_bulk  <- Plot_creation(col1s ="Log_bulk" , 
+               col2s = "Log_reject",
+              title = "Reject vs Bulk", 
+              xtitle = "Bulk Fumonisin Level Log (ng/g)",
+              ytitle = "Reject Fumonisin Log (ng/g)",
+              xposition = 4,
+              yposition = 6.5,
+              xmax = 5,
+              ymax = 7.5,
+              xmin = 3,
+              ymin = 0
+              ) + geom_abline(intercept = 0, slope = 1, lty=2)
+
+plot(KenyaFM_reject_bulk)
+
+
+```
+```{r}
+#Fumo_Kenya_v2
+
+##Accept vs Bulk Graph
+KenyaFM_log_dif_accept_reject  <- Plot_creation(col1s ="Log_bulk" , 
+               col2s = "Dif_log_accept_reject",
+              title = "Difference Accept - Reject", 
+              xtitle = "Bulk Fumonisin Level Log (ng/g)",
+              ytitle = "Difference Fumonisin Accept - Reject Log (ng/g)",
+              xposition = 4,
+              yposition = 2.5,
+              xmax = 5,
+              ymax = 4,
+              xmin = 3,
+              ymin = -7.5
+              ) + geom_hline(yintercept=0, linetype="dashed", color = "tomato2")
+
+plot(KenyaFM_log_dif_accept_reject )
+
+```
+
+```{r}
+#Fumo_Kenya_v2
+
+##Fumonisin Removed vs Mas removed in percentage
+KenyaFM_fumo_removed_mass  <- Plot_creation(col1s ="Mass_reject_percentage" , 
+               col2s = "Fum_mass_removed_percentage",
+              title = "Fumonisin Mass Removed vs Mass Rejected", 
+              xtitle = "Mass Reject (%)",
+              ytitle = "Fumonisin Mass Removed (%)",
+              xposition = 25,
+              yposition = 25,
+              xmax = 35,
+              ymax = 100,
+              xmin = 0,
+              ymin = 0
+              ) + geom_abline(intercept = 0, slope = 1, lty=2)
+
+plot(KenyaFM_fumo_removed_mass)
+
+```
+
+```{r}
+Fumo_Kenya_v2
+
+##Fumonisin Removed vs Mas removed in percentage
+KenyaFM_mass_reject_bulk  <- Plot_creation(col1s ="Log_bulk" , 
+               col2s = "Mass_reject_percentage",
+              title = "Mass Reject vs Bulk Fumonisin", 
+              xtitle = "Bulk Fumonisin Log (ng/g)",
+              ytitle = "Mass Reject (%)",
+              xposition = 4,
+              yposition = 55,
+              xmax = 5,
+              ymax = 100,
+              xmin = 3,
+              ymin = 0
+              )
+
+plot(KenyaFM_mass_reject_bulk)
+
+```
+
